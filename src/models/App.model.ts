@@ -8,12 +8,11 @@ import {
   transaction,
 } from "reactronic";
 import { SuggestionService } from "../services/SuggestionService";
-import { sleep } from "../utils/TimeUtils";
 import { SuggestionModel } from "./Suggestion.model";
 
 export class AppModel extends ObservableObject {
   public static readonly loading = Monitor.create("Get Suggestions", 0, 0);
-  public static readonly input = Monitor.create("Input", 0, 500);
+  public static readonly input = Monitor.create("Input", -1, 500);
   public text = "";
   public suggestions: SuggestionModel[] = [];
   public isError = false;
@@ -23,8 +22,7 @@ export class AppModel extends ObservableObject {
   @transaction
   @monitor(AppModel.input)
   @reentrance(Reentrance.WaitAndRestart)
-  public async setText(text: string): Promise<void> {
-    await sleep(0);
+  public setText(text: string): void {
     this.text = text;
   }
 

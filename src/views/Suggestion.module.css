@@ -17,7 +17,7 @@
   cursor: pointer;
 }
 
-.selected {
+.suggestion:focus {
   background-color: #4b6cb7;
   outline: none;
 }

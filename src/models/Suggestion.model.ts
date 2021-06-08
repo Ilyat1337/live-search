@@ -1,10 +1,11 @@
-import { ObservableObject, transaction, unobservable } from "reactronic";
+import { ObservableObject, reaction, unobservable } from "reactronic";
+import { WebSensors } from "reactronic-front";
 
 export class SuggestionModel extends ObservableObject {
   private static nextId = 1;
   @unobservable public readonly text: string;
   @unobservable public readonly id: number;
-  public focused = false;
+  @unobservable public readonly sensors = new WebSensors();
   public selected = false;
 
   public constructor(text: string) {
@@ -13,18 +14,11 @@ export class SuggestionModel extends ObservableObject {
     this.id = SuggestionModel.nextId++;
   }
 
-  @transaction
-  public focus(): void {
-    this.focused = true;
-  }
-
-  @transaction
-  public blur(): void {
-    this.focused = false;
-  }
-
-  @transaction
-  public select(): void {
-    this.selected = true;
+  @reaction
+  private keyPressed(): void {
+    if (this.sensors.keyboard.down === "Enter") {
+      this.sensors.stopPropagation();
+      this.selected = true;
+    }
   }
 }

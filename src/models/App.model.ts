@@ -8,6 +8,7 @@ import {
   transaction,
 } from "reactronic";
 import { SuggestionService } from "../services/SuggestionService";
+import { sleep } from "../utils/TimeUtils";
 import { SuggestionModel } from "./Suggestion.model";
 
 export class AppModel extends ObservableObject {
@@ -23,7 +24,7 @@ export class AppModel extends ObservableObject {
   @monitor(AppModel.input)
   @reentrance(Reentrance.WaitAndRestart)
   public async setText(text: string): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await sleep(0);
     this.text = text;
   }
 

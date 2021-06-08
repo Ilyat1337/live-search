@@ -1,3 +1,4 @@
+import { sleep } from "../utils/TimeUtils";
 import { DATA } from "./Data";
 
 export class SuggestionService {
@@ -6,14 +7,12 @@ export class SuggestionService {
       s.toLowerCase().startsWith(text.toLowerCase())
     );
 
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (!text.includes("error")) {
-          resolve(suggestions);
-        } else {
-          reject(new Error("Error occurred"));
-        }
-      }, 500);
-    });
+    await sleep(500);
+
+    if (!text.includes("error")) {
+      return Promise.resolve(suggestions);
+    } else {
+      return Promise.reject(new Error("Error occurred"));
+    }
   }
 }

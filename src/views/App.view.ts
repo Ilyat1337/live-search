@@ -18,6 +18,10 @@ export function AppView(model: AppModel): void {
       e.className = styles.search;
 
       RxInput("Input", null, (e) => {
+        model.inputSensors.listen(e);
+
+        e.eventInfo = { keyboard: e };
+
         e.className = styles.input;
         e.classList.toggle(
           styles.inputLoading,
@@ -32,6 +36,8 @@ export function AppView(model: AppModel): void {
       });
 
       RxDiv("Suggestions", null, (e) => {
+        model.suggestionSensors.listen(e);
+
         e.className = styles.suggestions;
 
         if (model.isError) {

@@ -5,8 +5,11 @@ import {
   reaction,
   Reentrance,
   reentrance,
+  standalone,
   transaction,
+  unobservable,
 } from "reactronic";
+
 import { PointerButton, WebSensors } from "reactronic-front";
 import { SuggestionService } from "../services/SuggestionService";
 import { SuggestionModel } from "./Suggestion.model";
@@ -17,8 +20,11 @@ export class Tag {
 
 export class AppModel extends ObservableObject {
   public static readonly loading = Monitor.create("Get Suggestions", 0, 0);
-  public static readonly input = Monitor.create("Input", -1, 500);
-  public readonly sensors = new WebSensors()
+
+  public static readonly input = Monitor.create("Input", -1, 300);
+  @unobservable public readonly suggestionSensors = new WebSensors();
+  @unobservable public readonly inputSensors = new WebSensors();
+
   public text = "";
   public suggestions: SuggestionModel[] = [];
   public isError = false;
@@ -28,7 +34,8 @@ export class AppModel extends ObservableObject {
   @transaction
   @monitor(AppModel.input)
   @reentrance(Reentrance.WaitAndRestart)
-  public setText(text: string): void {
+  public async setText(text: string): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 0));
     this.text = text;
   }
 
@@ -41,7 +48,9 @@ export class AppModel extends ObservableObject {
       if (this.text !== "") {
         try {
           const suggestions = await SuggestionService.getSuggestions(this.text);
-          this.suggestions = suggestions.map((s) => new SuggestionModel(s));
+          this.suggestions = standalone(() =>
+            this.createSuggestionModels(suggestions)
+          );
         } catch (error) {
           this.isError = true;
         }
@@ -51,10 +60,20 @@ export class AppModel extends ObservableObject {
     }
   }
 
+  @transaction
+  private createSuggestionModels(suggestions: string[]): SuggestionModel[] {
+    return suggestions.map((s) => new SuggestionModel(s));
+  }
+
   @reaction
   private suggestionFocused(): void {
-    this.suggestions.forEach((s) => s.focused);
-    this.currentSuggestion = this.suggestions.find((s) => s.focused) ?? null;
+    const { focus, currentEvent } = this.suggestionSensors;
+    focus.revision;
+
+    if (currentEvent?.type === "focusin" && focus.eventInfos.length > 0) {
+      const model = focus.eventInfos[0] as SuggestionModel;
+      this.currentSuggestion = model;
+    }
   }
 
   @reaction

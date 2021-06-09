@@ -7,7 +7,7 @@ export function AppView(model: AppModel): void {
   Div("App", (e) => {
     e.className = styles.app;
 
-    model.sensors.listen(e)
+    model.tagSensors.listen(e);
 
     P("Greeting", (e) => {
       e.className = styles.greeting;
@@ -18,8 +18,6 @@ export function AppView(model: AppModel): void {
       e.className = styles.search;
 
       RxInput("Input", null, (e) => {
-        model.inputSensors.listen(e);
-
         e.eventInfo = { keyboard: e };
 
         e.className = styles.input;
@@ -28,7 +26,7 @@ export function AppView(model: AppModel): void {
           AppModel.loading.isActive || AppModel.input.isActive
         );
 
-        e.eventInfo = { hover: new Tag('search box') }
+        e.eventInfo = { hover: new Tag("search box") };
 
         e.focus();
         e.value = model.text;
@@ -49,16 +47,21 @@ export function AppView(model: AppModel): void {
           model.suggestions.forEach(SuggestionView);
         }
       });
-      RxDiv('PointerInfo', null, e => {
-        e.className = styles.pointerInfo
-        e.eventInfo = { pointer: new Tag('hello') }
-        const pointer = model.sensors.pointer
-        const hover = model.sensors.hover
-        const tags = hover.eventInfos.map(x => (x as Tag).name).join(', ')
-        const x = Math.round(pointer.positionX)
-        const y = Math.round(pointer.positionY)
-        e.innerText = `Click me\nPointer: (${x}, ${y})\nHover: ${tags || '(none)'}`
-      })
+
+      RxDiv("PointerInfo", null, (e) => {
+        e.className = styles.pointerInfo;
+        e.eventInfo = { pointer: new Tag("hello") };
+
+        const { pointer, hover } = model.tagSensors;
+        const tags = hover.eventInfos.map((x) => (x as Tag).name).join(", ");
+        const x = Math.round(pointer.positionX);
+        const y = Math.round(pointer.positionY);
+
+        e.innerText = `Click me
+        Pointer: (${x}, ${y})
+        Hover: ${tags || "(none)"}
+        `;
+      });
     });
   });
 }

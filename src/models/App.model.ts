@@ -9,7 +9,6 @@ import {
   transaction,
   unobservable,
 } from "reactronic";
-
 import { PointerButton, WebSensors } from "reactronic-front";
 import { SuggestionService } from "../services/SuggestionService";
 import { SuggestionModel } from "./Suggestion.model";
@@ -20,11 +19,9 @@ export class Tag {
 
 export class AppModel extends ObservableObject {
   public static readonly loading = Monitor.create("Get Suggestions", 0, 0);
-
   public static readonly input = Monitor.create("Input", -1, 300);
   @unobservable public readonly suggestionSensors = new WebSensors();
-  @unobservable public readonly inputSensors = new WebSensors();
-
+  @unobservable public readonly tagSensors = new WebSensors();
   public text = "";
   public suggestions: SuggestionModel[] = [];
   public isError = false;
@@ -34,8 +31,7 @@ export class AppModel extends ObservableObject {
   @transaction
   @monitor(AppModel.input)
   @reentrance(Reentrance.WaitAndRestart)
-  public async setText(text: string): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+  public setText(text: string): void {
     this.text = text;
   }
 
@@ -86,11 +82,12 @@ export class AppModel extends ObservableObject {
 
   @reaction
   handlePointerClick(): void {
-    const pointer = this.sensors.pointer
-    const infos = pointer.eventInfos
+    const { pointer } = this.tagSensors;
+    const infos = pointer.eventInfos;
+
     if (pointer.click === PointerButton.Left && infos.length > 0) {
-      const tags = infos.map(x => (x as Tag).name).join(', ')
-      alert(tags)
+      const tags = infos.map((x) => (x as Tag).name).join(", ");
+      alert(tags);
     }
   }
 }

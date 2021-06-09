@@ -7,7 +7,7 @@ export class SuggestionService {
       s.toLowerCase().startsWith(text.toLowerCase())
     );
 
-    await sleep(500);
+    await sleep(0);
 
     if (!text.includes("error")) {
       return Promise.resolve(suggestions);

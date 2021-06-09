@@ -5,9 +5,9 @@ import { SuggestionView } from "./Suggestion.view";
 
 export function AppView(model: AppModel): void {
   Div("App", (e) => {
-    e.className = styles.app;
-
     model.tagSensors.listen(e);
+
+    e.className = styles.app;
 
     P("Greeting", (e) => {
       e.className = styles.greeting;
@@ -18,7 +18,7 @@ export function AppView(model: AppModel): void {
       e.className = styles.search;
 
       RxInput("Input", null, (e) => {
-        e.eventInfo = { keyboard: e };
+        model.inputSensors.listen(e);
 
         e.className = styles.input;
         e.classList.toggle(
@@ -30,7 +30,6 @@ export function AppView(model: AppModel): void {
 
         e.focus();
         e.value = model.text;
-        e.oninput = () => model.setText(e.value);
       });
 
       RxDiv("Suggestions", null, (e) => {

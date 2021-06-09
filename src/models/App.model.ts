@@ -6,6 +6,7 @@ import {
   Reentrance,
   reentrance,
   standalone,
+  throttling,
   transaction,
   unobservable,
 } from "reactronic";
@@ -22,18 +23,12 @@ export class AppModel extends ObservableObject {
   public static readonly input = Monitor.create("Input", -1, 300);
   @unobservable public readonly suggestionSensors = new WebSensors();
   @unobservable public readonly tagSensors = new WebSensors();
+  @unobservable public readonly inputSensors = new WebSensors();
   public text = "";
   public suggestions: SuggestionModel[] = [];
   public isError = false;
   public inputFocused = false;
   private currentSuggestion: SuggestionModel | null = null;
-
-  @transaction
-  @monitor(AppModel.input)
-  @reentrance(Reentrance.WaitAndRestart)
-  public setText(text: string): void {
-    this.text = text;
-  }
 
   @reaction
   @monitor(AppModel.loading)
@@ -81,7 +76,7 @@ export class AppModel extends ObservableObject {
   }
 
   @reaction
-  handlePointerClick(): void {
+  private handlePointerClick(): void {
     const { pointer } = this.tagSensors;
     const infos = pointer.eventInfos;
 
@@ -89,5 +84,23 @@ export class AppModel extends ObservableObject {
       const tags = infos.map((x) => (x as Tag).name).join(", ");
       alert(tags);
     }
+  }
+
+  @reaction
+  @throttling(0)
+  @reentrance(Reentrance.WaitAndRestart)
+  private handleTextChange(): void {
+    const { down } = this.inputSensors.keyboard;
+
+    if (down.length === 1 || down === "Backspace" || down === "Delete") {
+      const input = this.inputSensors.currentEvent?.target as HTMLInputElement;
+      this.setText(input.value);
+    }
+  }
+
+  @transaction
+  @monitor(AppModel.input)
+  private setText(text: string): void {
+    this.text = text;
   }
 }

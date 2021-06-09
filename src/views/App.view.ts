@@ -18,8 +18,6 @@ export function AppView(model: AppModel): void {
       e.className = styles.search;
 
       RxInput("Input", null, (e) => {
-        e.eventInfo = { keyboard: e };
-
         e.className = styles.input;
         e.classList.toggle(
           styles.inputLoading,

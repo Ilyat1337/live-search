@@ -81,7 +81,7 @@ export class AppModel extends ObservableObject {
   }
 
   @reaction
-  handlePointerClick(): void {
+  private handlePointerClick(): void {
     const { pointer } = this.tagSensors;
     const infos = pointer.eventInfos;
 

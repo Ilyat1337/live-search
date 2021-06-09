@@ -79,3 +79,16 @@
   font-size: 1.4rem;
   color: white;
 }
+
+.pointerInfo {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  color: white;
+  text-align: right;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  border: 1px solid rgba(127, 127, 127, 0.1);
+  background-color: rgba(127, 127, 127, 0.2);
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+}

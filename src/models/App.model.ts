@@ -3,6 +3,7 @@ import {
   Monitor,
   ObservableObject,
   reaction,
+  Reactronic,
   Reentrance,
   reentrance,
   standalone,
@@ -44,9 +45,13 @@ export class AppModel extends ObservableObject {
 
       try {
         const suggestions = await SuggestionService.getSuggestions(this.filter);
+        const oldSuggestions = this.suggestions;
+
         this.suggestions = standalone(() =>
           this.createSuggestionModels(suggestions)
         );
+
+        oldSuggestions.forEach((suggestion) => Reactronic.dispose(suggestion));
       } catch (error) {
         this.isError = true;
       }

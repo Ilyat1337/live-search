@@ -26,8 +26,12 @@ export function AppView(model: AppModel): void {
 
         e.eventInfo = { hover: new Tag("search box") };
 
+        // Update input value only after transaction has finished to avoid assigning old value
+        if (!AppModel.input.isActive && e.value !== model.filter) {
+          e.value = model.filter;
+        }
+
         e.focus();
-        e.value = model.filter;
         e.oninput = () => model.setFilter(e.value);
       });
 

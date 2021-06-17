@@ -5,9 +5,9 @@ import { SuggestionView } from "./Suggestion.view";
 
 export function AppView(model: AppModel): void {
   Div("App", (e) => {
-    e.className = styles.app;
+    model.appSensors.listen(e);
 
-    model.tagSensors.listen(e);
+    e.className = styles.app;
 
     P("Greeting", (e) => {
       e.className = styles.greeting;
@@ -27,12 +27,12 @@ export function AppView(model: AppModel): void {
         e.eventInfo = { hover: new Tag("search box") };
 
         e.focus();
-        e.value = model.text;
-        e.oninput = () => model.setText(e.value);
+        e.value = model.filter;
+        e.oninput = () => model.setFilter(e.value);
       });
 
       RxDiv("Suggestions", null, (e) => {
-        model.suggestionSensors.listen(e);
+        model.suggestionsSensors.listen(e);
 
         e.className = styles.suggestions;
 
@@ -47,10 +47,11 @@ export function AppView(model: AppModel): void {
       });
 
       RxDiv("PointerInfo", null, (e) => {
-        e.className = styles.pointerInfo;
         e.eventInfo = { pointer: new Tag("hello") };
 
-        const { pointer, hover } = model.tagSensors;
+        e.className = styles.pointerInfo;
+
+        const { pointer, hover } = model.appSensors;
         const tags = hover.eventInfos.map((x) => (x as Tag).name).join(", ");
         const x = Math.round(pointer.positionX);
         const y = Math.round(pointer.positionY);

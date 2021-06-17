@@ -19,10 +19,11 @@ export class Tag {
 
 export class AppModel extends ObservableObject {
   public static readonly loading = Monitor.create("Get Suggestions", 0, 0);
-  public static readonly input = Monitor.create("Input", -1, 300);
-  @unobservable public readonly suggestionSensors = new WebSensors();
-  @unobservable public readonly tagSensors = new WebSensors();
-  public text = "";
+  public static readonly input = Monitor.create("Filter input", -1, 300);
+  @unobservable public readonly appSensors = new WebSensors();
+  // Separate sensors for catching keydown events from suggestions only
+  @unobservable public readonly suggestionsSensors = new WebSensors();
+  public filter = "";
   public suggestions: SuggestionModel[] = [];
   public isError = false;
   public inputFocused = false;
@@ -31,8 +32,8 @@ export class AppModel extends ObservableObject {
   @transaction
   @monitor(AppModel.input)
   @reentrance(Reentrance.WaitAndRestart)
-  public setText(text: string): void {
-    this.text = text;
+  public setFilter(text: string): void {
+    this.filter = text;
   }
 
   @reaction
@@ -41,17 +42,13 @@ export class AppModel extends ObservableObject {
     if (!AppModel.input.isActive) {
       this.isError = false;
 
-      if (this.text !== "") {
-        try {
-          const suggestions = await SuggestionService.getSuggestions(this.text);
-          this.suggestions = standalone(() =>
-            this.createSuggestionModels(suggestions)
-          );
-        } catch (error) {
-          this.isError = true;
-        }
-      } else {
-        this.suggestions = [];
+      try {
+        const suggestions = await SuggestionService.getSuggestions(this.filter);
+        this.suggestions = standalone(() =>
+          this.createSuggestionModels(suggestions)
+        );
+      } catch (error) {
+        this.isError = true;
       }
     }
   }
@@ -63,26 +60,42 @@ export class AppModel extends ObservableObject {
 
   @reaction
   private suggestionFocused(): void {
-    const { focus, currentEvent } = this.suggestionSensors;
+    const { focus, currentEvent } = this.appSensors;
     focus.revision;
 
     if (currentEvent?.type === "focusin" && focus.eventInfos.length > 0) {
-      const model = focus.eventInfos[0] as SuggestionModel;
-      this.currentSuggestion = model;
+      const { eventInfos } = focus;
+      if (eventInfos.length > 0) {
+        const model = eventInfos[0] as SuggestionModel;
+        this.currentSuggestion = model;
+      }
     }
   }
 
   @reaction
   private suggestionSelected(): void {
     if (this.currentSuggestion?.selected) {
-      this.text = this.currentSuggestion.text;
+      this.filter = this.currentSuggestion.text;
       this.currentSuggestion.selected = false;
     }
   }
 
   @reaction
+  private suggestionKeydown(): void {
+    if (this.suggestionsSensors.keyboard.down === "Enter") {
+      this.suggestionsSensors.stopPropagation();
+
+      const { eventInfos } = this.suggestionsSensors.keyboard;
+      if (eventInfos.length > 0) {
+        const model = eventInfos[0] as SuggestionModel;
+        model.selected = true;
+      }
+    }
+  }
+
+  @reaction
   private handlePointerClick(): void {
-    const { pointer } = this.tagSensors;
+    const { pointer } = this.appSensors;
     const infos = pointer.eventInfos;
 
     if (pointer.click === PointerButton.Left && infos.length > 0) {

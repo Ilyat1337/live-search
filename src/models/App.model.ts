@@ -22,8 +22,6 @@ export class AppModel extends ObservableObject {
   public static readonly loading = Monitor.create("Get Suggestions", 0, 0);
   public static readonly input = Monitor.create("Filter input", -1, 300);
   @unobservable public readonly appSensors = new WebSensors();
-  // Separate sensors for catching keydown events from suggestions only
-  @unobservable public readonly suggestionsSensors = new WebSensors();
   public filter = "";
   public suggestions: SuggestionModel[] = [];
   public isError = false;
@@ -87,14 +85,14 @@ export class AppModel extends ObservableObject {
 
   @reaction
   private suggestionKeydown(): void {
-    if (this.suggestionsSensors.keyboard.down === "Enter") {
-      this.suggestionsSensors.stopPropagation();
+    const { keyboard } = this.appSensors;
 
-      const { eventInfos } = this.suggestionsSensors.keyboard;
-      if (eventInfos.length > 0) {
-        const model = eventInfos[0] as SuggestionModel;
-        model.selected = true;
-      }
+    if (
+      keyboard.down === "Enter" &&
+      keyboard.eventInfos.some((e) => e instanceof SuggestionModel)
+    ) {
+      const model = keyboard.eventInfos[0] as SuggestionModel;
+      model.selected = true;
     }
   }
 

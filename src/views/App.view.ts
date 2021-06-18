@@ -36,8 +36,6 @@ export function AppView(model: AppModel): void {
       });
 
       RxDiv("Suggestions", null, (e) => {
-        model.suggestionsSensors.listen(e);
-
         e.className = styles.suggestions;
 
         if (model.isError) {
